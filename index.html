@@ -7,167 +7,142 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-        .pixel-border {
-            image-rendering: pixelated;
-            box-shadow: 0 0 0 2px #000;
-            border-radius: 2px;
-        }
-        
-        @keyframes gradient {
-            0% {background-position: 0% 50%;}
-            50% {background-position: 100% 50%;}
-            100% {background-position: 0% 50%;}
-        }
-        
-        .gradient-bg {
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-        }
-    </style>
+    .pixel-border {
+        image-rendering: pixelated;
+        box-shadow: 0 0 0 2px #000;
+        border-radius: 2px;
+    }
+    
+    @keyframes gradient {
+        0% {background-position: 0% 50%;}
+        50% {background-position: 100% 50%;}
+        100% {background-position: 0% 50%;}
+    }
+    
+    .gradient-bg {
+        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+    }
+
+    .avatar-container {
+        position: relative;
+        width: 512px;
+        height: 512px;
+        margin: 0 auto;
+    }
+
+    .avatar-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        border-radius: 2px;
+    }
+</style>
 </head>
 <body class="gradient-bg min-h-screen">
-<nav class="bg-black/50 text-white p-4">
+<nav class="bg-black/50 text-white p-4 backdrop-blur-sm">
 <div class="container mx-auto">
-<a href="https://spencience.com/avatars" class="text-xl font-pixel">Spencience Avatar Lab</a>
+<a href="https://spencience.com/avatars" class="text-xl font-bold">Spencience Avatar Lab</a>
 <div class="float-right">
-<a href="https://spencience.com/gallery" class="mr-4">Gallery</a>
-<a href="https://spencience.com/create">Create</a>
+<a href="https://spencience.com/gallery" class="mr-4 hover:text-blue-300">Gallery</a>
+<a href="https://spencience.com/create" class="hover:text-blue-300">Create</a>
 </div>
 </div>
 </nav>
 <main class="container mx-auto p-4">
-<div class="bg-white/90 rounded-lg p-8 max-w-4xl mx-auto">
-<canvas id="avatarCanvas" class="w-full aspect-square pixel-border"></canvas>
+<div class="bg-white/90 rounded-lg p-8 max-w-4xl mx-auto backdrop-blur-md">
+<div class="avatar-container">
+    <canvas id="avatarCanvas" class="pixel-border"></canvas>
+    <div class="avatar-overlay"></div>
+</div>
 <div class="mt-8 grid grid-cols-2 gap-4">
 <div class="bg-gray-100 p-4 rounded">
-<h2 class="text-xl mb-4">Controls</h2>
+<h2 class="text-xl mb-4 font-bold">Controls</h2>
 <div class="space-y-4">
-<button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="toggleRotation()">Toggle Rotation</button>
-<button class="bg-green-500 text-white px-4 py-2 rounded" onclick="resetView()">Reset View</button>
+<button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors" onclick="toggleRotation()">Toggle Rotation</button>
+<button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors" onclick="resetView()">Reset View</button>
 <div class="flex items-center">
 <label class="mr-2">Speed:</label>
-<input type="range" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateSpeed(this.value)">
+<input type="range" min="0.1" max="2.0" step="0.1" value="1.0" class="w-full" oninput="updateSpeed(this.value)">
 </div>
 </div>
 </div>
 <div class="bg-gray-100 p-4 rounded">
-<h2 class="text-xl mb-4">Character Stats</h2>
+<h2 class="text-xl mb-4 font-bold">Character Stats</h2>
 <div class="space-y-2">
-<p>Name: Spencience</p>
-<p>Level: 42</p>
-<p>Class: Digital Alchemist</p>
-<p>XP: 15,789</p>
+<p>Name: <span class="font-semibold">Spencience</span></p>
+<p>Level: <span class="text-purple-600 font-bold">42</span></p>
+<p>Class: <span class="text-blue-600">Digital Alchemist</span></p>
+<p>XP: <span class="text-green-600">15,789</span></p>
 </div>
 </div>
 </div>
 </div>
 </main>
-<footer class="bg-black/50 text-white p-4 mt-8">
+<footer class="bg-black/50 text-white p-4 mt-8 backdrop-blur-sm">
 <div class="container mx-auto text-center">
-<a href="https://spencience.com/terms">Terms</a> |
-            <a href="https://spencience.com/privacy">Privacy</a> |
-            <a href="https://spencience.com/contact">Contact</a>
+<a href="https://spencience.com/terms" class="hover:text-blue-300">Terms</a> |
+<a href="https://spencience.com/privacy" class="hover:text-blue-300">Privacy</a> |
+<a href="https://spencience.com/contact" class="hover:text-blue-300">Contact</a>
 </div>
 </footer>
 <script>
-        let scene = new THREE.Scene();
-        let camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-        let renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('avatarCanvas'), antialias: true });
-        let rotating = true;
-        let speed = 1.0;
+    let scene = new THREE.Scene();
+    let camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    let renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('avatarCanvas'), antialias: true });
+    let rotating = true;
+    let speed = 1.0;
 
-        renderer.setSize(512, 512);
-        renderer.setPixelRatio(1);
+    renderer.setSize(512, 512);
+    renderer.setPixelRatio(1);
 
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
+    const geometry = new THREE.IcosahedronGeometry(1, 1);
+    const material = new THREE.MeshPhongMaterial({ 
+        color: 0x23a6d5,
+        shininess: 100,
+        specular: 0x444444,
+        flatShading: true
+    });
+    const avatar = new THREE.Mesh(geometry, material);
+    scene.add(avatar);
 
-        const light = new THREE.AmbientLight(0x404040);
-        scene.add(light);
+    const light = new THREE.AmbientLight(0x404040);
+    scene.add(light);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        directionalLight.position.set(1, 1, 1);
-        scene.add(directionalLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(1, 1, 1);
+    scene.add(directionalLight);
 
-        camera.position.z = 5;
+    camera.position.z = 3;
 
-        function animate() {
-            requestAnimationFrame(animate);
-            if (rotating) {
-                cube.rotation.x += 0.01 * speed;
-                cube.rotation.y += 0.01 * speed;
-            }
-            renderer.render(scene, camera);
+    function animate() {
+        requestAnimationFrame(animate);
+        if (rotating) {
+            avatar.rotation.x += 0.01 * speed;
+            avatar.rotation.y += 0.01 * speed;
         }
+        renderer.render(scene, camera);
+    }
 
-        function toggleRotation() {
-            rotating = !rotating;
-        }
+    function toggleRotation() {
+        rotating = !rotating;
+    }
 
-        function resetView() {
-            cube.rotation.x = 0;
-            cube.rotation.y = 0;
-        }
+    function resetView() {
+        avatar.rotation.x = 0;
+        avatar.rotation.y = 0;
+    }
 
-        function updateSpeed(newSpeed) {
-            speed = parseFloat(newSpeed);
-        }
+    function updateSpeed(newSpeed) {
+        speed = parseFloat(newSpeed);
+    }
 
-        animate();
-    </script>
-</body>
-</html>
-</html>
-</html> tag at the end that should be removed.
-
-The correct ending should be:
-
-```html
-</body>
-</html>
-</html> tags at the end. The correct ending should be:
-
-```html
-</body>
-</html>
-</html> tags at the end. The correct ending should be:
-
-```html
-</body>
-</html>
-</html> tags at the end. The correct ending should be just:
-
-```html
-</body>
-</html>
-</html> tags at the end. The correct ending should be just:
-
-```html
-</body>
-</html>
-</html> tags at the end. The correct version should end with just:
-
-```html
-</body>
-</html>
-</html> tags at the end. The correct version should end with just:
-
-```html
-</body>
-</html>
-</html> tags at the end. The correct version should end with just:
-
-```html
-</body>
-</html>
-```
-
-Since the content is already complete and functional, no additional code needs to be added. The only change needed is to remove the extra </html>
-</html> tags at the end. The file should end with just:
-
-```html
+    animate();
+</script>
 </body>
 </html>
